@@ -7,15 +7,15 @@ platform = {"darwin": "mac", "win32": "win"}.get(sys.platform, "unix")
 
 setup(
     name=f"libtukaan-{platform}",
-    version="0.1.3",
+    version="0.1.4",
     license="MIT",
     author="rdbende",
-    author_email="rdbende@gmail.com",
+    author_email="rdbende@proton.me",
     description="Binary extensions for Tukaan",
     url="https://tukaan.github.io",
     project_urls={
-        "Documentation": "https://tukaan.github.io/docs",
         "Source": "https://github.com/tukaan/libtukaan",
+        "Documentation": "https://tukaan.github.io/docs",
         "Tracker": "https://github.com/tukaan/libtukaan/issues",
     },
     python_requires=">=3.7",
