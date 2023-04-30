@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from tukaan._tcl import Tcl
+from tukaan._utils import reversed_dict
 
 
 class Xcursor:
@@ -21,11 +22,15 @@ class Xcursor:
 
     @classmethod
     def load_cursor(cls, source: Path) -> str:
+        source_str = Tcl.to(source)
+        if source_str in cls.loaded_cursors.values():
+            return reversed_dict(cls.loaded_cursors)[source_str]
+
         if not source.exists():
             raise FileNotFoundError(source)
 
-        cursor_id = Tcl.call(str, "Xcursor::load_cursor_file", source)
-        cls.loaded_cursors[cursor_id] = str(source.resolve().absolute())
+        cursor_id = Tcl.call(str, "Xcursor::load_cursor_file", source_str)
+        cls.loaded_cursors[cursor_id] = source_str
         return cursor_id
 
     @classmethod
