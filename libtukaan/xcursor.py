@@ -4,12 +4,11 @@ import sys
 from pathlib import Path
 
 from tukaan._tcl import Tcl
-from tukaan._utils import reversed_dict
 
 
 class Xcursor:
-    loaded_cursors: dict[str, str] = {}
-    defined_cursors: dict[str, str] = {}
+    _loaded_cursors: dict[str, str] = {}
+    _defined_cursors: dict[str, str] = {}
 
     @staticmethod
     def init() -> None:
@@ -21,29 +20,40 @@ class Xcursor:
         )
 
     @classmethod
+    def get_path_for_cursor(cls, cursor_id: str) -> str:
+        return cls._loaded_cursors.get(cursor_id, "")
+
+    @classmethod
     def load_cursor(cls, source: Path) -> str:
         source_str = Tcl.to(source)
-        if source_str in cls.loaded_cursors.values():
-            return reversed_dict(cls.loaded_cursors)[source_str]
+        for cursor_id, path in cls._loaded_cursors.items():
+            if path == source_str:
+                return cursor_id
 
         if not source.exists():
             raise FileNotFoundError(source)
 
-        cursor_id = Tcl.call(str, "Xcursor::load_cursor_file", source_str)
-        cls.loaded_cursors[cursor_id] = source_str
+        cursor_id = Tcl.eval(str, f"Xcursor::load_cursor_file {source_str}")
+        cls._loaded_cursors[cursor_id] = source_str
         return cursor_id
 
     @classmethod
     def set_cursor(cls, widget_name: str, cursor_id: str) -> None:
-        Tcl.call(None, "Xcursor::set_cursor", widget_name, cursor_id)
-        cls.defined_cursors[cursor_id] = widget_name
+        Tcl.eval(None, f"Xcursor::set_cursor {widget_name} {cursor_id}")
+        cls._defined_cursors[widget_name] = cursor_id
+
+    @classmethod
+    def undefine_cursors(cls, widget_names: set[str]) -> None:
+        for widget_name in widget_names:
+            Tcl.eval(None, f"Xcursor::undefine_cursor {widget_name}")
+            cls._defined_cursors.pop(widget_name)
 
     @classmethod
     def cleanup_cursors(cls) -> None:
-        for widget_name in cls.defined_cursors.values():
-            Tcl.call(None, "Xcursor::undefine_cursor", widget_name)
-        for cursor_id in cls.loaded_cursors:
-            Tcl.call(None, "Xcursor::free_cursor", cursor_id)
+        for widget_name in cls._defined_cursors:
+            Tcl.eval(None, f"Xcursor::undefine_cursor {widget_name}")
+        for cursor_id in cls._loaded_cursors:
+            Tcl.eval(None, f"Xcursor::free_cursor {cursor_id}")
 
-        cls.loaded_cursors.clear()
-        cls.defined_cursors.clear()
+        cls._loaded_cursors.clear()
+        cls._defined_cursors.clear()

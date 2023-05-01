@@ -7,7 +7,7 @@ platform = {"darwin": "mac", "win32": "win"}.get(sys.platform, "unix")
 
 setup(
     name=f"libtukaan-{platform}",
-    version="0.1.4",
+    version="0.1.5",
     license="MIT",
     author="rdbende",
     author_email="rdbende@proton.me",
